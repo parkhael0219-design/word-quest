@@ -28,13 +28,19 @@
         .progress-fill { background: #00cec9; height: 100%; border-radius: 10px; width: 0%; transition: 0.3s; }
 
         /* 퀴즈 박스 */
-        .quiz-card { background: white; border-radius: 24px; padding: 40px 20px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.05); margin-bottom: 25px; }
+        .quiz-card { background: white; border-radius: 24px; padding: 40px 20px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.05); margin-bottom: 25px; position: relative; }
         .quiz-word { font-size: 40px; font-weight: 900; color: #2d3436; margin-bottom: 10px; }
         
+        /* 발음 버튼 스타일 */
+        .btn-speak { background: #e0e7ff; border: none; border-radius: 50%; width: 44px; height: 44px; cursor: pointer; font-size: 20px; color: #4f46e5; margin-bottom: 10px; display: inline-flex; align-items: center; justify-content: center; transition: 0.2s; }
+        .btn-speak:hover { background: #c7d2fe; transform: scale(1.1); }
+
         /* 예문 박스 */
         .example-box { display: none; background: #f8f9fa; border-left: 5px solid #0984e3; padding: 18px; text-align: left; margin-top: 20px; border-radius: 12px; animation: fadeIn 0.4s; }
-        .ex-en { font-size: 15px; color: #2d3436; font-style: italic; margin-bottom: 6px; line-height: 1.4; }
-        .ex-ko { font-size: 13px; color: #7f8c8d; }
+        .ex-en { font-size: 15px; color: #2d3436; font-style: italic; margin-bottom: 6px; line-height: 1.4; display: flex; align-items: flex-start; gap: 8px; }
+        .ex-ko { font-size: 13px; color: #7f8c8d; padding-left: 28px; }
+        .mini-speak { cursor: pointer; color: #0984e3; font-size: 16px; margin-top: 2px; }
+
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
         /* 객관식 리스트 */
@@ -59,7 +65,7 @@
         <div class="main-header">
             <div class="main-icon">💎</div>
             <div class="main-title">Hael's Intelligence</div>
-            <div class="main-desc">필수 영단어 20제 (40단어 랜덤)</div>
+            <div class="main-desc">필수 영단어 20제 (100+ 단어 랜덤)</div>
         </div>
         <button class="btn btn-choice" onclick="startQuiz('choice')">객관식 퀘스트</button>
         <button class="btn btn-typing" onclick="startQuiz('typing')">주관식 퀘스트</button>
@@ -71,10 +77,15 @@
         <div class="progress-container"><div id="progress-bar" class="progress-fill"></div></div>
         
         <div class="quiz-card">
+            <button id="main-speaker" class="btn-speak" style="display:none;" onclick="speakCurrentWord()">🔊</button>
             <div id="question-word" class="quiz-word">Word</div>
             <div id="word-answer-peek" style="display:none; color:#0984e3; font-size:20px; font-weight:bold; margin-bottom:10px;">정답 표시</div>
+            
             <div id="example-box" class="example-box">
-                <div id="ex-en" class="ex-en">Example sentence</div>
+                <div class="ex-en">
+                    <span class="mini-speak" onclick="speakCurrentExample()">🔊</span>
+                    <span id="ex-en-text">Example sentence</span>
+                </div>
                 <div id="ex-ko" class="ex-ko">예문 해석</div>
             </div>
         </div>
@@ -96,48 +107,135 @@
 </div>
 
 <script>
-    // 아까 많이 만들어둔 40단어 데이터베이스!
     const allDatabase = [
-        {w: "Acknowledge", m: "인정하다", ex: "He acknowledged his mistake.", exk: "그는 자신의 실수를 인정했다."},
-        {w: "Determine", m: "결정하다", ex: "Hard work determines success.", exk: "노력이 성공을 결정한다."},
-        {w: "Sustainable", m: "지속 가능한", ex: "We need sustainable energy.", exk: "우리는 지속 가능한 에너지가 필요하다."},
-        {w: "Significant", m: "중요한", ex: "This is a significant change.", exk: "이것은 중요한 변화이다."},
-        {w: "Environment", m: "환경", ex: "Protect the environment.", exk: "환경을 보호하자."},
-        {w: "Consequence", m: "결과", ex: "Every action has a consequence.", exk: "모든 행동에는 결과가 따른다."},
-        {w: "Accomplish", m: "성취하다", ex: "You can accomplish anything.", exk: "당신은 무엇이든 성취할 수 있다."},
-        {w: "Sufficient", m: "충분한", ex: "I have sufficient time.", exk: "나는 충분한 시간이 있다."},
-        {w: "Experience", m: "경험", ex: "Experience is the best teacher.", exk: "경험은 최고의 스승이다."},
-        {w: "Habit", m: "습관", ex: "Old habits die hard.", exk: "세 살 버릇 여든까지 간다."},
-        {w: "Confident", m: "자신감 있는", ex: "Be confident in yourself.", exk: "자신감을 가지세요."},
-        {w: "Innovation", m: "혁신", ex: "Innovation drives progress.", exk: "혁신이 발전을 이끈다."},
-        {w: "Reliable", m: "믿을 수 있는", ex: "He is a reliable friend.", exk: "그는 믿음직한 친구다."},
-        {w: "Opportunity", m: "기회", ex: "Don't miss the opportunity.", exk: "기회를 놓치지 마세요."},
-        {w: "Maintain", m: "유지하다", ex: "Maintain a good posture.", exk: "좋은 자세를 유지하세요."},
-        {w: "Evaluate", m: "평가하다", ex: "We must evaluate the result.", exk: "우리는 결과를 평가해야 한다."},
-        {w: "Strategy", m: "전략", ex: "We need a new strategy.", exk: "우리는 새로운 전략이 필요하다."},
-        {w: "Succeed", m: "성공하다", ex: "You will succeed eventually.", exk: "당신은 결국 성공할 것입니다."},
-        {w: "Observe", m: "관찰하다", ex: "Observe how it works.", exk: "이것이 어떻게 작동하는지 관찰하세요."},
-        {w: "Imagine", m: "상상하다", ex: "Imagine your future self.", exk: "당신의 미래 모습을 상상해 보세요."},
-        {w: "Support", m: "지지하다", ex: "My family always supports me.", exk: "우리 가족은 항상 나를 지지해준다."},
-        {w: "Believe", m: "믿다", ex: "I believe in myself.", exk: "나는 내 자신을 믿는다."},
-        {w: "Future", m: "미래", ex: "Think about your future.", exk: "너의 미래에 대해 생각해봐."},
-        {w: "Prepare", m: "준비하다", ex: "Prepare for the final exam.", exk: "기말고사를 준비해라."},
-        {w: "Difficult", m: "어려운", ex: "This problem is very difficult.", exk: "이 문제는 매우 어렵다."},
-        {w: "Protect", m: "보호하다", ex: "We must protect the earth.", exk: "우리는 지구를 보호해야 한다."},
-        {w: "Subject", m: "과목", ex: "What is your favorite subject?", exk: "네가 가장 좋아하는 과목은 뭐니?"},
-        {w: "Library", m: "도서관", ex: "I study in the library.", exk: "나는 도서관에서 공부한다."},
-        {w: "Brave", m: "용감한", ex: "Be brave and try it.", exk: "용기를 내서 시도해봐."},
-        {w: "Expensive", m: "비싼", ex: "This watch is too expensive.", exk: "이 시계는 너무 비싸다."},
-        {w: "Suddenly", m: "갑자기", ex: "Suddenly, it started to rain.", exk: "갑자기 비가 내리기 시작했다."},
-        {w: "History", m: "역사", ex: "I like learning about history.", exk: "나는 역사에 대해 배우는 것을 좋아한다."},
-        {w: "Healthy", m: "건강한", ex: "Eat healthy food every day.", exk: "매일 건강한 음식을 먹어라."},
-        {w: "Different", m: "다른", ex: "We are all different.", exk: "우리는 모두 다르다."},
-        {w: "Important", m: "중요한", ex: "Health is very important.", exk: "건강은 매우 중요하다."},
-        {w: "Careful", m: "조심스러운", ex: "Be careful with the knife.", exk: "칼을 조심해라."},
-        {w: "Beautiful", m: "아름다운", ex: "The flowers are beautiful.", exk: "꽃들이 아름답다."},
-        {w: "Together", m: "함께", ex: "Let's work together.", exk: "함께 일하자."},
-        {w: "Correct", m: "맞는", ex: "That is the correct answer.", exk: "그것이 정답이다."},
-        {w: "Analyze", m: "분석하다", ex: "We need to analyze the data.", exk: "우리는 데이터를 분석해야 한다."}
+        {w:"About",m:"~에 대해",ex:"Talk about your hobby.",exk:"너의 취미에 대해 말해라."},
+        {w:"Above",m:"위에",ex:"The lamp is above the table.",exk:"램프는 테이블 위에 있다."},
+        {w:"Across",m:"건너서",ex:"Walk across the street.",exk:"길을 건너라."},
+        {w:"Afraid",m:"두려운",ex:"I'm afraid of dogs.",exk:"나는 개가 무섭다."},
+        {w:"After",m:"~후에",ex:"After school, I study.",exk:"방과 후 나는 공부한다."},
+        {w:"Again",m:"다시",ex:"Try again.",exk:"다시 시도해라."},
+        {w:"Air",m:"공기",ex:"Fresh air is good.",exk:"신선한 공기는 좋다."},
+        {w:"All",m:"모든",ex:"All students are here.",exk:"모든 학생이 여기 있다."},
+        {w:"Almost",m:"거의",ex:"I am almost done.",exk:"거의 다 했다."},
+        {w:"Alone",m:"혼자",ex:"He is alone.",exk:"그는 혼자다."},
+        {w:"Always",m:"항상",ex:"I always wake early.",exk:"나는 항상 일찍 일어난다."},
+        {w:"Angry",m:"화난",ex:"She is angry.",exk:"그녀는 화가 났다."},
+        {w:"Animal",m:"동물",ex:"I love animals.",exk:"나는 동물을 좋아한다."},
+        {w:"Answer",m:"대답하다",ex:"Answer the question.",exk:"질문에 대답해라."},
+        {w:"Any",m:"어떤",ex:"Do you have any questions?",exk:"질문 있니?"},
+        {w:"Around",m:"주변에",ex:"Look around.",exk:"주변을 봐라."},
+        {w:"Art",m:"미술",ex:"Art is fun.",exk:"미술은 재미있다."},
+        {w:"Ask",m:"묻다",ex:"Ask your teacher.",exk:"선생님께 물어봐라."},
+        {w:"Aunt",m:"이모/고모",ex:"My aunt is kind.",exk:"우리 이모는 친절하다."},
+        {w:"Back",m:"뒤",ex:"Go back.",exk:"뒤로 가라."},
+        {w:"Bad",m:"나쁜",ex:"Bad habits.",exk:"나쁜 습관."},
+        {w:"Bag",m:"가방",ex:"My bag is heavy.",exk:"내 가방은 무겁다."},
+        {w:"Ball",m:"공",ex:"Kick the ball.",exk:"공을 차라."},
+        {w:"Beautiful",m:"아름다운",ex:"She is beautiful.",exk:"그녀는 아름답다."},
+        {w:"Because",m:"왜냐하면",ex:"I stayed home because it rained.",exk:"비가 와서 집에 있었다."},
+        {w:"Before",m:"~전에",ex:"Finish before dinner.",exk:"저녁 전에 끝내라."},
+        {w:"Best",m:"최고의",ex:"He is the best.",exk:"그는 최고다."},
+        {w:"Better",m:"더 좋은",ex:"This is better.",exk:"이게 더 낫다."},
+        {w:"Big",m:"큰",ex:"A big house.",exk:"큰 집."},
+        {w:"Bike",m:"자전거",ex:"Ride a bike.",exk:"자전거를 타라."},
+        {w:"Black",m:"검은",ex:"Black shoes.",exk:"검은 신발."},
+        {w:"Blue",m:"파란",ex:"Blue sky.",exk:"파란 하늘."},
+        {w:"Book",m:"책",ex:"Read a book.",exk:"책을 읽어라."},
+        {w:"Boy",m:"소년",ex:"The boy runs.",exk:"소년이 달린다."},
+        {w:"Bread",m:"빵",ex:"Eat bread.",exk:"빵을 먹어라."},
+        {w:"Bring",m:"가져오다",ex:"Bring your bag.",exk:"가방을 가져와라."},
+        {w:"Brother",m:"형/남동생",ex:"My brother is tall.",exk:"내 형은 키가 크다."},
+        {w:"Busy",m:"바쁜",ex:"I am busy.",exk:"나는 바쁘다."},
+        {w:"Buy",m:"사다",ex:"Buy food.",exk:"음식을 사라."},
+        {w:"Call",m:"전화하다",ex:"Call me.",exk:"나에게 전화해라."},
+        {w:"Care",m:"돌보다",ex:"Care for animals.",exk:"동물을 돌봐라."},
+        {w:"Carry",m:"나르다",ex:"Carry the box.",exk:"상자를 옮겨라."},
+        {w:"Clean",m:"깨끗한/청소하다",ex:"Clean your room.",exk:"방을 청소해라."},
+        {w:"Close",m:"닫다",ex:"Close the door.",exk:"문을 닫아라."},
+        {w:"Cold",m:"추운",ex:"It is cold.",exk:"춥다."},
+        {w:"Come",m:"오다",ex:"Come here.",exk:"여기로 와라."},
+        {w:"Cook",m:"요리하다",ex:"Cook dinner.",exk:"저녁을 요리해라."},
+        {w:"Cool",m:"시원한",ex:"Cool weather.",exk:"시원한 날씨."},
+        {w:"Correct",m:"맞는",ex:"Correct answer.",exk:"정답."},
+        {w:"Cute",m:"귀여운",ex:"A cute dog.",exk:"귀여운 강아지."},
+        {w:"Dance",m:"춤추다",ex:"Dance together.",exk:"함께 춤춰라."},
+        {w:"Dark",m:"어두운",ex:"It is dark.",exk:"어둡다."},
+        {w:"Day",m:"하루",ex:"Have a good day.",exk:"좋은 하루 보내라."},
+        {w:"Dear",m:"사랑하는",ex:"Dear friend.",exk:"사랑하는 친구."},
+        {w:"Different",m:"다른",ex:"We are different.",exk:"우리는 다르다."},
+        {w:"Do",m:"하다",ex:"Do your homework.",exk:"숙제를 해라."},
+        {w:"Draw",m:"그리다",ex:"Draw a picture.",exk:"그림을 그려라."},
+        {w:"Drink",m:"마시다",ex:"Drink water.",exk:"물을 마셔라."},
+        {w:"Drive",m:"운전하다",ex:"Drive safely.",exk:"안전하게 운전해라."},
+        {w:"Early",m:"일찍",ex:"Wake up early.",exk:"일찍 일어나라."},
+        {w:"Easy",m:"쉬운",ex:"This is easy.",exk:"이것은 쉽다."},
+        {w:"Eat",m:"먹다",ex:"Eat breakfast.",exk:"아침을 먹어라."},
+        {w:"Enjoy",m:"즐기다",ex:"Enjoy your time.",exk:"시간을 즐겨라."},
+        {w:"Every",m:"매일",ex:"Every day.",exk:"매일."},
+        {w:"Family",m:"가족",ex:"I love my family.",exk:"나는 가족을 사랑한다."},
+        {w:"Far",m:"먼",ex:"It is far.",exk:"멀다."},
+        {w:"Fast",m:"빠른",ex:"Run fast.",exk:"빨리 달려라."},
+        {w:"Feel",m:"느끼다",ex:"I feel happy.",exk:"나는 행복을 느낀다."},
+        {w:"Find",m:"찾다",ex:"Find your key.",exk:"열쇠를 찾아라."},
+        {w:"Fine",m:"좋은",ex:"I'm fine.",exk:"나는 괜찮다."},
+        {w:"Finish",m:"끝내다",ex:"Finish it.",exk:"그것을 끝내라."},
+        {w:"Food",m:"음식",ex:"Delicious food.",exk:"맛있는 음식."},
+        {w:"Friend",m:"친구",ex:"My friend is nice.",exk:"내 친구는 착하다."},
+        {w:"Fun",m:"재미있는",ex:"It is fun.",exk:"재미있다."},
+        {w:"Game",m:"게임",ex:"Play a game.",exk:"게임을 하라."},
+        {w:"Get",m:"얻다",ex:"Get a gift.",exk:"선물을 받아라."},
+        {w:"Girl",m:"소녀",ex:"The girl smiles.",exk:"소녀가 웃는다."},
+        {w:"Give",m:"주다",ex:"Give me water.",exk:"나에게 물을 줘라."},
+        {w:"Go",m:"가다",ex:"Go home.",exk:"집에 가라."},
+        {w:"Good",m:"좋은",ex:"Good job.",exk:"잘했다."},
+        {w:"Great",m:"훌륭한",ex:"Great idea.",exk:"훌륭한 생각이다."},
+        {w:"Happy",m:"행복한",ex:"I am happy.",exk:"나는 행복하다."},
+        {w:"Hard",m:"어려운",ex:"It is hard.",exk:"어렵다."},
+        {w:"Have",m:"가지다",ex:"I have a book.",exk:"나는 책이 있다."},
+        {w:"Help",m:"돕다",ex:"Help me.",exk:"나를 도와줘."},
+        {w:"Here",m:"여기",ex:"Come here.",exk:"여기로 와라."},
+        {w:"Home",m:"집",ex:"Go home.",exk:"집에 가라."},
+        {w:"Hot",m:"더운",ex:"It is hot.",exk:"덥다."},
+        {w:"How",m:"어떻게",ex:"How are you?",exk:"어떻게 지내니?"},
+        {w:"Important",m:"중요한",ex:"It is important.",exk:"중요하다."},
+        {w:"Keep",m:"유지하다",ex:"Keep going.",exk:"계속해라."},
+        {w:"Kind",m:"친절한",ex:"She is kind.",exk:"그녀는 친절하다."},
+        {w:"Know",m:"알다",ex:"I know it.",exk:"나는 그것을 안다."},
+        {w:"Learn",m:"배우다",ex:"Learn English.",exk:"영어를 배워라."},
+        {w:"Leave",m:"떠나다",ex:"Leave now.",exk:"지금 떠나라."},
+        {w:"Like",m:"좋아하다",ex:"I like music.",exk:"나는 음악을 좋아한다."},
+        {w:"Listen",m:"듣다",ex:"Listen carefully.",exk:"잘 들어라."},
+        {w:"Live",m:"살다",ex:"Live well.",exk:"잘 살아라."},
+        {w:"Look",m:"보다",ex:"Look at me.",exk:"나를 봐라."},
+        {w:"Love",m:"사랑하다",ex:"Love your family.",exk:"가족을 사랑해라."},
+        {w:"Make",m:"만들다",ex:"Make a plan.",exk:"계획을 세워라."},
+        {w:"Meet",m:"만나다",ex:"Meet a friend.",exk:"친구를 만나라."},
+        {w:"Move",m:"움직이다",ex:"Move fast.",exk:"빠르게 움직여라."},
+        {w:"Need",m:"필요하다",ex:"I need help.",exk:"나는 도움이 필요하다."},
+        {w:"Open",m:"열다",ex:"Open the door.",exk:"문을 열어라."},
+        {w:"Play",m:"놀다",ex:"Play outside.",exk:"밖에서 놀아라."},
+        {w:"Put",m:"놓다",ex:"Put it here.",exk:"여기에 놓아라."},
+        {w:"Read",m:"읽다",ex:"Read a book.",exk:"책을 읽어라."},
+        {w:"Run",m:"달리다",ex:"Run fast.",exk:"빠르게 달려라."},
+        {w:"Say",m:"말하다",ex:"Say hello.",exk:"인사해라."},
+        {w:"See",m:"보다",ex:"I see you.",exk:"나는 너를 본다."},
+        {w:"Sit",m:"앉다",ex:"Sit down.",exk:"앉아라."},
+        {w:"Sleep",m:"자다",ex:"Sleep well.",exk:"잘 자라."},
+        {w:"Smile",m:"웃다",ex:"Smile always.",exk:"항상 웃어라."},
+        {w:"Speak",m:"말하다",ex:"Speak English.",exk:"영어로 말해라."},
+        {w:"Stand",m:"서다",ex:"Stand up.",exk:"일어나라."},
+        {w:"Start",m:"시작하다",ex:"Start now.",exk:"지금 시작해라."},
+        {w:"Stop",m:"멈추다",ex:"Stop here.",exk:"여기서 멈춰라."},
+        {w:"Study",m:"공부하다",ex:"Study hard.",exk:"열심히 공부해라."},
+        {w:"Take",m:"가지다",ex:"Take a break.",exk:"쉬어라."},
+        {w:"Talk",m:"말하다",ex:"Talk to me.",exk:"나와 이야기해라."},
+        {w:"Think",m:"생각하다",ex:"Think carefully.",exk:"잘 생각해라."},
+        {w:"Try",m:"시도하다",ex:"Try again.",exk:"다시 시도해라."},
+        {w:"Use",m:"사용하다",ex:"Use this.",exk:"이것을 사용해라."},
+        {w:"Wait",m:"기다리다",ex:"Wait here.",exk:"여기서 기다려라."},
+        {w:"Walk",m:"걷다",ex:"Walk slowly.",exk:"천천히 걸어라."},
+        {w:"Watch",m:"보다",ex:"Watch TV.",exk:"TV를 봐라."},
+        {w:"Write",m:"쓰다",ex:"Write your name.",exk:"이름을 써라."}
     ];
 
     let sessionWords = [];
@@ -145,10 +243,26 @@
     let score = 0;
     let quizMode = '';
 
+    // TTS 발음 함수
+    function playTTS(text) {
+        window.speechSynthesis.cancel(); // 이전 소리 끄기
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'en-US';
+        utterance.rate = 0.9; // 속도 약간 천천히
+        window.speechSynthesis.speak(utterance);
+    }
+
+    function speakCurrentWord() {
+        playTTS(sessionWords[current].w);
+    }
+
+    function speakCurrentExample() {
+        playTTS(sessionWords[current].ex);
+    }
+
     function startQuiz(mode) {
         quizMode = mode;
         current = 0; score = 0;
-        // 40개 중에서 랜덤으로 20개 뽑기
         sessionWords = [...allDatabase].sort(() => Math.random() - 0.5).slice(0, 20);
         
         document.getElementById('main-screen').classList.remove('active');
@@ -165,18 +279,19 @@
         const q = sessionWords[current];
         const wordDisplay = document.getElementById('question-word');
         const peek = document.getElementById('word-answer-peek');
+        const mainSpeaker = document.getElementById('main-speaker');
         
         peek.style.display = 'none';
         
         if (quizMode === 'typing') {
-            wordDisplay.innerText = q.m; // 주관식은 뜻을 보여줌
-        } else if (quizMode === 'choice') {
-            wordDisplay.innerText = q.w; // 객관식은 영어를 보여줌
+            wordDisplay.innerText = q.m;
+            mainSpeaker.style.display = 'none'; // 주관식은 단어가 안보이니 스피커 숨김
         } else {
-            wordDisplay.innerText = q.w; // 예문학습은 영어를 보여줌
+            wordDisplay.innerText = q.w;
+            mainSpeaker.style.display = 'inline-flex'; // 객관식/예문은 스피커 보여줌
         }
         
-        document.getElementById('ex-en').innerText = q.ex;
+        document.getElementById('ex-en-text').innerText = q.ex;
         document.getElementById('ex-ko').innerText = q.exk;
         document.getElementById('example-box').style.display = 'none';
         document.getElementById('next-btn').style.display = 'none';
@@ -213,6 +328,7 @@
         if (selected === correct) {
             el.classList.add('correct');
             score++;
+            speakCurrentWord(); // 맞히면 단어 읽어줌
         } else {
             el.classList.add('wrong');
             allChoices.forEach(c => { if(c.innerText === correct) c.classList.add('correct'); });
@@ -228,6 +344,7 @@
         input.readOnly = true;
         if (userAnswer === correctAnswer) {
             score++;
+            speakCurrentWord(); // 맞히면 단어 읽어줌
         } else {
             document.getElementById('word-answer-peek').innerText = `정답: ${sessionWords[current].w}`;
             document.getElementById('word-answer-peek').style.display = 'block';
@@ -239,6 +356,7 @@
         document.getElementById('word-answer-peek').innerText = `뜻: ${sessionWords[current].m}`;
         document.getElementById('word-answer-peek').style.display = 'block';
         document.getElementById('study-ui').style.display = 'none';
+        speakCurrentWord(); // 뜻 볼 때 단어 읽어줌
         showResult();
     }
 
