@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Hael's 20-Word Multi Quest</title>
+    <title>Hael's Perfect 20 Quest</title>
     <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
         * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; outline: none; }
@@ -71,7 +71,8 @@
 </div>
 
 <script>
-    const allWords = [
+    // [중요] 오답 보기를 만들 때 사용할 실제 단어 리스트
+    const choiceWords = [
         {w: "Acknowledge", m: "인정하다"}, {w: "Determine", m: "결정하다"}, {w: "Sustainable", m: "지속 가능한"}, {w: "Significant", m: "중요한"},
         {w: "Environment", m: "환경"}, {w: "Consequence", m: "결과"}, {w: "Accomplish", m: "성취하다"}, {w: "Sufficient", m: "충분한"},
         {w: "Experience", m: "경험"}, {w: "Habit", m: "습관"}, {w: "Routine", m: "일상"}, {w: "Schedule", m: "일정"},
@@ -84,7 +85,12 @@
         {w: "Observe", m: "관찰하다"}, {w: "Imagine", m: "상상하다"}, {w: "Communicate", m: "소통하다"}, {w: "Respond", m: "응답하다"}
     ];
 
-    document.getElementById('db-count').innerText = allWords.length;
+    let megaDatabase = [...choiceWords];
+    
+    // 이전에 주석 처리했던 9,000개 데이터 부분은 삭제하지 않고 두셨으므로
+    // choiceWords 데이터만 megaDatabase에 넣어서 진짜 단어만 나오게 했습니다.
+
+    document.getElementById('db-count').innerText = megaDatabase.length;
 
     let mode = '';
     let sessionWords = [];
@@ -98,7 +104,7 @@
     function startQuest(m) {
         mode = m;
         // 20문제로 설정!
-        sessionWords = [...allWords].sort(() => Math.random() - 0.5).slice(0, 20);
+        sessionWords = [...megaDatabase].sort(() => Math.random() - 0.5).slice(0, 20);
         curIdx = 0; score = 0;
         
         document.getElementById('typing-ui').style.display = (mode === 'typing') ? 'block' : 'none';
@@ -124,9 +130,10 @@
             const area = document.getElementById('choice-ui');
             area.innerHTML = '';
             
+            // [수정 완료] 이제 megaDatabase가 아닌 choiceWords에서만 오답을 가져옵니다!
             let choices = [q.m];
             while(choices.length < 4) {
-                let rand = allWords[Math.floor(Math.random() * allWords.length)].m;
+                let rand = choiceWords[Math.floor(Math.random() * choiceWords.length)].m;
                 if(!choices.includes(rand)) choices.push(rand);
             }
             choices.sort(() => Math.random() - 0.5);
