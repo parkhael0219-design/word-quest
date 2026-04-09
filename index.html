@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Hael's Word Quest</title>
+    <style>
+        body { margin: 0; font-family: 'Pretendard', 'Malgun Gothic', sans-serif; background-color: #F0F2F5; color: #333; display: flex; flex-direction: column; height: 100vh; }
+        .screen { display: none; flex-direction: column; height: 100%; padding: 20px; box-sizing: border-box; }
+        .active { display: flex; }
+        
+        .header-box { background: linear-gradient(135deg, #4A90E2, #50A7C2); color: white; border-radius: 15px; padding: 40px 20px; text-align: center; margin-bottom: 30px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .header-box h1 { margin: 0; font-size: 28px; }
+        .main-btn { background-color: #fff; color: #333; border: none; padding: 18px; font-size: 16px; font-weight: bold; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); width: 100%; cursor: pointer; transition: 0.2s; }
+        .main-btn.blue { background-color: #4A90E2; color: #fff; }
+        
+        .study-container { flex: 1; overflow-y: auto; background: #fff; border-radius: 12px; padding: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 15px; }
+        .word-item { border-bottom: 1px solid #eee; padding: 12px 0; }
+        .word-item:last-child { border-bottom: none; }
+        .w-title { font-size: 18px; font-weight: bold; color: #4A90E2; }
+        .w-ex { font-size: 14px; color: #666; margin-top: 5px; }
+        
+        .bottom-nav { padding-bottom: 10px; }
+        .back-btn { background-color: #6C757D; color: white; width: 100%; padding: 15px; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; }
+        
+        .progress-bar { text-align: center; font-size: 14px; color: #888; margin-bottom: 20px; font-weight: bold; }
+        .question-card { background: #fff; padding: 40px 20px; text-align: center; border-radius: 15px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .question-card h2 { font-size: 32px; margin: 0; color: #1A1A1A; }
+        .feedback { min-height: 24px; text-align: center; font-weight: bold; margin-bottom: 15px; font-size: 16px; }
+        .choice-btn { background-color: #fff; border: 1px solid #ddd; padding: 15px; margin-bottom: 10px; border-radius: 10px; font-size: 16px; width: 100%; cursor: pointer; transition: 0.2s; }
+        .choice-btn:disabled { color: #333; }
+        .correct-btn { background-color: #D1E7DD !important; border-color: #0F5132 !important; color: #0F5132 !important; }
+        .wrong-text { color: #E74C3C; }
+        .next-btn { background-color: #333; color: white; width: 100%; padding: 15px; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; display: none; margin-top: 10px; }
+    </style>
+</head>
+<body>
+
+    <div id="screen-main" class="screen active">
+        <div class="header-box">
+            <h1>🎯 Word Quest</h1>
+            <p>오늘의 20단어 마스터하기</p>
+        </div>
+        <button class="main-btn" onclick="showScreen('screen-study')">📖 오늘의 20단어 예습</button>
+        <button class="main-btn blue" onclick="startQuiz()">⚡ 20문제 퀘스트 시작</button>
+    </div>
+
+    <div id="screen-study" class="screen">
+        <h2 style="margin-top: 0;">오늘의 20단어 📚</h2>
+        <div class="study-container" id="study-list"></div>
+        <div class="bottom-nav">
+            <button class="back-btn" onclick="showScreen('screen-main')">메인으로 돌아가기</button>
+        </div>
+    </div>
+
+    <div id="screen-quiz" class="screen">
+        <div class="progress-bar" id="progress-text">진행도: 1 / 20</div>
+        <div class="question-card">
+            <h2 id="q-word">Word</h2>
+        </div>
+        <div class="feedback" id="q-feedback"></div>
+        <div id="choices-container"></div>
+        <button class="next-btn" id="btn-next" onclick="nextQuestion()">다음 문제 ❯</button>
+        <div class="bottom-nav" style="margin-top:20px;">
+            <button class="back-btn" style="background:#dc3545;" onclick="showScreen('screen-main')">퀴즈 포기하고 나가기</button>
+        </div>
+    </div>
+
+<script>
+    const fullWordDB = [
+        {word: "Subject", mean: "과목", ex: "My favorite subject is Math."},
+        {word: "Library", mean: "도서관", ex: "The library is very quiet."},
+        {word: "Environment", mean: "환경", ex: "We must protect the environment."},
+        {word: "Remember", mean: "기억하다", ex: "Please remember my phone number."},
+        {word: "Brave", mean: "용감한", ex: "The brave firefighter saved the cat."},
+        {word: "Factory", mean: "공장", ex: "My uncle works in a car factory."},
+        {word: "Expensive", mean: "값비싼", ex: "This computer is too expensive."},
+        {word: "Suddenly", mean: "갑자기", ex: "Suddenly, the light went out."},
+        {word: "Impossible", mean: "불가능한", ex: "Nothing is impossible to me."},
+        {word: "Experience", mean: "경험", ex: "It was a great experience for me."},
+        {word: "Celebrate", mean: "축하하다", ex: "Let's celebrate your birthday!"},
+        {word: "History", mean: "역사", ex: "I like to study Korean history."},
+        {word: "Future", mean: "미래", ex: "What is your dream for the future?"},
+        {word: "Healthy", mean: "건강한", ex: "Eating vegetables is a healthy habit."},
+        {word: "Volunteer", mean: "자원봉사자", ex: "I want to be a library volunteer."},
+        {word: "Imagine", mean: "상상하다", ex: "Imagine living on the moon."},
+        {word: "Believe", mean: "믿다", ex: "I believe in myself."},
+        {word: "Different", mean: "다른", ex: "We have different ideas."},
+        {word: "Important", "mean": "중요한", ex: "Water is important for our life."},
+        {word: "Interesting", mean: "흥미로운", ex: "This book is very interesting."},
+        {word: "Difficult", mean: "어려운", ex: "Math is difficult but fun."},
+        {word: "Careful", mean: "조심스러운", ex: "Be careful with the glass."},
+        {word: "Beautiful", "mean": "아름다운", ex: "The flower is so beautiful."},
+        {word: "Together", mean: "함께", ex: "Let's clean the room together."},
+        {word: "Promise", "mean": "약속", ex: "Keep your promise with friends."},
+        {word: "Airport", "mean": "공항", ex: "The airport is far from here."},
+        {word: "Festival", "mean": "축제", ex: "The school festival was great."},
+        {word: "Opinion", "mean": "의견", ex: "What is your opinion about this?"},
+        {word: "Correct", mean: "맞는", ex: "Is this the correct answer?"},
+        {word: "Mistake", "mean": "실수", ex: "Don't be afraid of making a mistake."}
+    ];
+
+    function shuffle(array) {
+        return array.sort(() => Math.random() - 0.5);
+    }
+
+    // ★ 앱을 켤 때 딱 20개만 미리 뽑아둠 ★
+    let dailyWords = shuffle([...fullWordDB]).slice(0, 20);
+    
+    let questions = [];
+    let currentIdx = 0;
+    let score = 0;
+
+    function showScreen(screenId) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(screenId).classList.add('active');
+    }
+
+    // 예문 보기 창에는 뽑힌 20개만 보여줌
+    function loadStudyList() {
+        const container = document.getElementById('study-list');
+        container.innerHTML = '';
+        dailyWords.forEach((item, index) => {
+            container.innerHTML += `
+                <div class="word-item">
+                    <div class="w-title">${index + 1}. ${item.word} : ${item.mean}</div>
+                    <div class="w-ex">ㄴ ${item.ex}</div>
+                </div>
+            `;
+        });
+    }
+    // 페이지 로딩 시 한 번 실행
+    loadStudyList();
+
+    function playSound(isCorrect) {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        osc.connect(ctx.destination);
+        if (isCorrect) {
+            osc.frequency.value = 600; osc.type = 'sine'; osc.start(); osc.stop(ctx.currentTime + 0.1);
+        } else {
+            osc.frequency.value = 300; osc.type = 'square'; osc.start(); osc.stop(ctx.currentTime + 0.3);
+        }
+    }
+
+    // 퀴즈 시작 시 미리 뽑아둔 20개를 섞어서 출제
+    function startQuiz() {
+        score = 0;
+        currentIdx = 0;
+        questions = shuffle([...dailyWords]); 
+        showScreen('screen-quiz');
+        renderQuestion();
+    }
+
+    function renderQuestion() {
+        document.getElementById('btn-next').style.display = 'none';
+        document.getElementById('q-feedback').innerHTML = '';
+        document.getElementById('q-word').style.color = '#1A1A1A';
+        
+        document.getElementById('progress-text').innerText = `진행도: ${currentIdx + 1} / 20 (현재 ${score}점)`;
+
+        const q = questions[currentIdx];
+        document.getElementById('q-word').innerText = q.word;
+
+        // 보기는 전체 단어장에서 틀린 뜻 3개를 랜덤으로 가져옴
+        let others = fullWordDB.filter(w => w.mean !== q.mean).map(w => w.mean);
+        let choices = shuffle([q.mean, ...shuffle(others).slice(0, 3)]);
+        
+        const container = document.getElementById('choices-container');
+        container.innerHTML = '';
+        choices.forEach(choice => {
+            let btn = document.createElement('button');
+            btn.className = 'choice-btn';
+            btn.innerText = choice;
+            btn.onclick = () => checkAnswer(btn, choice, q.mean);
+            container.appendChild(btn);
+        });
+    }
+
+    function checkAnswer(clickedBtn, selected, correct) {
+        const buttons = document.querySelectorAll('.choice-btn');
+        buttons.forEach(btn => btn.disabled = true);
+
+        if (selected === correct) {
+            playSound(true);
+            score += 1;
+            clickedBtn.classList.add('correct-btn');
+            setTimeout(nextQuestion, 500); 
+        } else {
+            playSound(false);
+            document.getElementById('q-word').style.color = '#E74C3C';
+            document.getElementById('q-feedback').innerHTML = `<span class="wrong-text">❌ 정답은 [${correct}] 입니다.</span>`;
+            
+            buttons.forEach(btn => {
+                if (btn.innerText === correct) btn.classList.add('correct-btn'); 
+            });
+            document.getElementById('btn-next').style.display = 'block'; 
+        }
+    }
+
+    function nextQuestion() {
+        currentIdx++;
+        if (currentIdx < 20) {
+            renderQuestion();
+        } else {
+            alert(`🎉 오늘의 20문제 퀘스트 완료!\n최종 점수: ${score * 5}점 / 100점`);
+            showScreen('screen-main');
+        }
+    }
+</script>
+
+</body>
+</html>
