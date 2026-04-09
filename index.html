@@ -2,201 +2,268 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Hael's Perfect 20 Quest</title>
-    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;700;900&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hael's English Quest</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; outline: none; }
-        body { margin: 0; font-family: 'Pretendard', sans-serif; background: #0F172A; color: #F8FAFC; overflow: hidden; }
-        .container { max-width: 500px; margin: 0 auto; height: 100vh; display: flex; flex-direction: column; }
-        .screen { display: none; padding: 30px; flex-direction: column; flex-grow: 1; justify-content: center; }
-        .active { display: flex; animation: slideUp 0.4s cubic-bezier(0.23, 1, 0.32, 1); }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        body { margin: 0; font-family: 'Noto Sans KR', sans-serif; background-color: #f5f7fa; color: #333; }
+        .container { max-width: 500px; margin: 0 auto; min-height: 100vh; display: flex; flex-direction: column; }
+        .screen { display: none; padding: 20px; flex-direction: column; flex-grow: 1; }
+        .active { display: flex; }
 
-        .glass-card { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); border-radius: 32px; padding: 40px 20px; text-align: center; }
-        .hero-icon { font-size: 80px; margin-bottom: 20px; filter: drop-shadow(0 0 20px #38BDF8); }
-        .title { font-size: 32px; font-weight: 900; background: linear-gradient(to right, #38BDF8, #818CF8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 10px; }
-        .count-badge { background: #334155; padding: 8px 16px; border-radius: 12px; font-size: 14px; color: #94A3B8; margin-bottom: 30px; display: inline-block; border: 1px solid #475569; }
+        /* 메인 화면 */
+        .main-header { text-align: center; padding-top: 50px; padding-bottom: 20px; }
+        .main-icon { font-size: 70px; margin-bottom: 15px; }
+        .main-title { font-size: 28px; font-weight: 900; color: #2d3436; margin-bottom: 8px; }
+        .main-desc { color: #636e72; margin-bottom: 35px; font-size: 15px; }
 
-        .btn { border: none; border-radius: 20px; padding: 22px; font-size: 18px; font-weight: 800; cursor: pointer; transition: 0.2s; width: 100%; margin-bottom: 15px; }
-        .btn-main { background: #38BDF8; color: #0F172A; box-shadow: 0 10px 20px rgba(56, 189, 248, 0.2); }
-        .btn-sub { background: #1E293B; color: #38BDF8; border: 1px solid #38BDF8; }
-        .btn:active { transform: scale(0.96); }
+        .btn { border: none; border-radius: 16px; padding: 20px; font-size: 17px; font-weight: bold; cursor: pointer; transition: 0.3s; margin-bottom: 12px; width: 100%; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .btn-choice { background-color: #0984e3; color: white; }
+        .btn-typing { background-color: #6c5ce7; color: white; }
+        .btn-study { background-color: #ffffff; color: #2d3436; border: 2px solid #dfe6e9; }
+        .btn:active { transform: scale(0.97); }
 
-        .q-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .card { background: #1E293B; border-radius: 28px; padding: 50px 20px; text-align: center; margin-bottom: 30px; border: 1px solid #334155; }
-        .card h2 { font-size: 42px; margin: 0; color: #F8FAFC; }
+        /* 진행도 바 */
+        .progress-container { background: #dfe6e9; border-radius: 10px; height: 8px; margin-bottom: 20px; }
+        .progress-fill { background: #00cec9; height: 100%; border-radius: 10px; width: 0%; transition: 0.3s; }
 
-        .word-input { width: 100%; background: #1E293B; border: 2px solid #334155; border-radius: 20px; padding: 20px; font-size: 24px; color: #F8FAFC; text-align: center; margin-bottom: 20px; }
-        .feedback { text-align: center; font-weight: bold; height: 24px; margin-bottom: 10px; visibility: hidden; }
-        .feedback.show { visibility: visible; }
-        .correct-text { color: #10B981; }
-        .wrong-text { color: #EF4444; }
+        /* 퀴즈 박스 */
+        .quiz-card { background: white; border-radius: 24px; padding: 40px 20px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.05); margin-bottom: 25px; }
+        .quiz-word { font-size: 40px; font-weight: 900; color: #2d3436; margin-bottom: 10px; }
+        
+        /* 예문 박스 */
+        .example-box { display: none; background: #f8f9fa; border-left: 5px solid #0984e3; padding: 18px; text-align: left; margin-top: 20px; border-radius: 12px; animation: fadeIn 0.4s; }
+        .ex-en { font-size: 15px; color: #2d3436; font-style: italic; margin-bottom: 6px; line-height: 1.4; }
+        .ex-ko { font-size: 13px; color: #7f8c8d; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
+        /* 객관식 리스트 */
         .choice-list { display: grid; gap: 12px; }
-        .choice-btn { background: #1E293B; border: 1px solid #334155; border-radius: 20px; padding: 20px; font-size: 17px; color: #F8FAFC; text-align: center; cursor: pointer; }
-        .choice-btn.correct { background: #10B981 !important; border-color: #10B981 !important; }
-        .choice-btn.wrong { background: #EF4444 !important; border-color: #EF4444 !important; }
+        .choice-item { background: white; border: 2px solid #f1f2f6; border-radius: 18px; padding: 18px; font-size: 16px; text-align: center; cursor: pointer; transition: 0.2s; font-weight: 600; }
+        .correct { background: #55efc4 !important; border-color: #00b894 !important; color: white; }
+        .wrong { background: #ff7675 !important; border-color: #d63031 !important; color: white; }
+        
+        /* 주관식 입력창 */
+        .typing-container { display: none; }
+        .input-word { width: 100%; padding: 20px; font-size: 22px; border: 2px solid #dfe6e9; border-radius: 18px; text-align: center; box-sizing: border-box; margin-bottom: 15px; font-weight: bold; }
+        .input-word:focus { border-color: #6c5ce7; outline: none; background-color: #fefaff; }
+
+        .btn-next { display: none; background: #2d3436; color: white; margin-top: 20px; }
+        .btn-back { background: transparent; color: #adb5bd; font-size: 14px; margin-top: 10px; text-decoration: underline; box-shadow: none; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div id="home" class="screen active">
-        <div class="glass-card">
-            <div class="hero-icon">💎</div>
-            <div class="title">WORD QUEST</div>
-            <div class="count-badge">REAL WORDS: <span id="db-count">0</span></div>
-            <button class="btn btn-main" onclick="startQuest('choice')">객관식 20문제</button>
-            <button class="btn btn-sub" onclick="startQuest('typing')">주관식 20문제</button>
+    <div id="main-screen" class="screen active">
+        <div class="main-header">
+            <div class="main-icon">💎</div>
+            <div class="main-title">Hael's Intelligence</div>
+            <div class="main-desc">필수 영단어 20제 (40단어 랜덤)</div>
         </div>
+        <button class="btn btn-choice" onclick="startQuiz('choice')">객관식 퀘스트</button>
+        <button class="btn btn-typing" onclick="startQuiz('typing')">주관식 퀘스트</button>
+        <button class="btn btn-study" onclick="startQuiz('study')">예문 집중 학습</button>
     </div>
 
-    <div id="quiz" class="screen">
-        <div class="q-header">
-            <div id="q-num" style="color: #38BDF8; font-weight: bold;">STEP 01/20</div>
-            <div id="score-text" style="color: #94A3B8;">SCORE: 0</div>
+    <div id="quiz-screen" class="screen">
+        <div id="progress-info" style="margin-bottom: 10px; font-weight: bold; font-size: 14px; color: #636e72;">문제 01 / 20</div>
+        <div class="progress-container"><div id="progress-bar" class="progress-fill"></div></div>
+        
+        <div class="quiz-card">
+            <div id="question-word" class="quiz-word">Word</div>
+            <div id="word-answer-peek" style="display:none; color:#0984e3; font-size:20px; font-weight:bold; margin-bottom:10px;">정답 표시</div>
+            <div id="example-box" class="example-box">
+                <div id="ex-en" class="ex-en">Example sentence</div>
+                <div id="ex-ko" class="ex-ko">예문 해석</div>
+            </div>
         </div>
         
-        <div class="card"><h2 id="display-q">...</h2></div>
-        
-        <div id="typing-ui" style="display: none;">
-            <div id="feedback" class="feedback">정답!</div>
-            <input type="text" id="user-input" class="word-input" placeholder="영어 단어 입력" autocomplete="off" spellcheck="false">
-            <button class="btn btn-main" onclick="checkTyping()">확인</button>
+        <div id="choices" class="choice-list"></div>
+
+        <div id="typing-ui" class="typing-container">
+            <input type="text" id="user-input" class="input-word" placeholder="영단어 입력" autocomplete="off" spellcheck="false">
+            <button class="btn btn-typing" onclick="checkTypingAnswer()">정답 확인</button>
         </div>
 
-        <div id="choice-ui" class="choice-list" style="display: none;"></div>
+        <div id="study-ui" style="display:none;">
+            <button class="btn btn-choice" onclick="showStudyResult()">정답 및 예문 보기</button>
+        </div>
+
+        <button id="next-btn" class="btn btn-next" onclick="next()">다음으로 👉</button>
+        <button class="btn btn-back" onclick="location.reload()">메인으로 돌아가기</button>
     </div>
 </div>
 
 <script>
-    // [중요] 오답 보기를 만들 때 사용할 실제 단어 리스트
-    const choiceWords = [
-        {w: "Acknowledge", m: "인정하다"}, {w: "Determine", m: "결정하다"}, {w: "Sustainable", m: "지속 가능한"}, {w: "Significant", m: "중요한"},
-        {w: "Environment", m: "환경"}, {w: "Consequence", m: "결과"}, {w: "Accomplish", m: "성취하다"}, {w: "Sufficient", m: "충분한"},
-        {w: "Experience", m: "경험"}, {w: "Habit", m: "습관"}, {w: "Routine", m: "일상"}, {w: "Schedule", m: "일정"},
-        {w: "Health", m: "건강"}, {w: "Exercise", m: "운동"}, {w: "Appointment", m: "약속"}, {w: "Invitation", m: "초대"},
-        {w: "Confident", m: "자신감 있는"}, {w: "Creative", m: "창의적인"}, {w: "Generous", m: "관대한"}, {w: "Humble", m: "겸손한"},
-        {w: "Patient", m: "인내심 있는"}, {w: "Honest", m: "정직한"}, {w: "Brave", m: "용감한"}, {w: "Optimistic", m: "낙관적인"},
-        {w: "Subject", m: "과목"}, {w: "Degree", m: "학위"}, {w: "Scholarship", m: "장학금"}, {w: "Innovation", m: "혁신"},
-        {w: "Analyze", m: "분석하다"}, {w: "Evaluate", m: "평가하다"}, {w: "Galaxy", m: "은하"}, {w: "Evolution", m: "진화"},
-        {w: "Strategy", m: "전략"}, {w: "Calculate", m: "계산하다"}, {w: "Succeed", m: "성공하다"}, {w: "Maintain", m: "유지하다"},
-        {w: "Observe", m: "관찰하다"}, {w: "Imagine", m: "상상하다"}, {w: "Communicate", m: "소통하다"}, {w: "Respond", m: "응답하다"}
+    // 아까 많이 만들어둔 40단어 데이터베이스!
+    const allDatabase = [
+        {w: "Acknowledge", m: "인정하다", ex: "He acknowledged his mistake.", exk: "그는 자신의 실수를 인정했다."},
+        {w: "Determine", m: "결정하다", ex: "Hard work determines success.", exk: "노력이 성공을 결정한다."},
+        {w: "Sustainable", m: "지속 가능한", ex: "We need sustainable energy.", exk: "우리는 지속 가능한 에너지가 필요하다."},
+        {w: "Significant", m: "중요한", ex: "This is a significant change.", exk: "이것은 중요한 변화이다."},
+        {w: "Environment", m: "환경", ex: "Protect the environment.", exk: "환경을 보호하자."},
+        {w: "Consequence", m: "결과", ex: "Every action has a consequence.", exk: "모든 행동에는 결과가 따른다."},
+        {w: "Accomplish", m: "성취하다", ex: "You can accomplish anything.", exk: "당신은 무엇이든 성취할 수 있다."},
+        {w: "Sufficient", m: "충분한", ex: "I have sufficient time.", exk: "나는 충분한 시간이 있다."},
+        {w: "Experience", m: "경험", ex: "Experience is the best teacher.", exk: "경험은 최고의 스승이다."},
+        {w: "Habit", m: "습관", ex: "Old habits die hard.", exk: "세 살 버릇 여든까지 간다."},
+        {w: "Confident", m: "자신감 있는", ex: "Be confident in yourself.", exk: "자신감을 가지세요."},
+        {w: "Innovation", m: "혁신", ex: "Innovation drives progress.", exk: "혁신이 발전을 이끈다."},
+        {w: "Reliable", m: "믿을 수 있는", ex: "He is a reliable friend.", exk: "그는 믿음직한 친구다."},
+        {w: "Opportunity", m: "기회", ex: "Don't miss the opportunity.", exk: "기회를 놓치지 마세요."},
+        {w: "Maintain", m: "유지하다", ex: "Maintain a good posture.", exk: "좋은 자세를 유지하세요."},
+        {w: "Evaluate", m: "평가하다", ex: "We must evaluate the result.", exk: "우리는 결과를 평가해야 한다."},
+        {w: "Strategy", m: "전략", ex: "We need a new strategy.", exk: "우리는 새로운 전략이 필요하다."},
+        {w: "Succeed", m: "성공하다", ex: "You will succeed eventually.", exk: "당신은 결국 성공할 것입니다."},
+        {w: "Observe", m: "관찰하다", ex: "Observe how it works.", exk: "이것이 어떻게 작동하는지 관찰하세요."},
+        {w: "Imagine", m: "상상하다", ex: "Imagine your future self.", exk: "당신의 미래 모습을 상상해 보세요."},
+        {w: "Support", m: "지지하다", ex: "My family always supports me.", exk: "우리 가족은 항상 나를 지지해준다."},
+        {w: "Believe", m: "믿다", ex: "I believe in myself.", exk: "나는 내 자신을 믿는다."},
+        {w: "Future", m: "미래", ex: "Think about your future.", exk: "너의 미래에 대해 생각해봐."},
+        {w: "Prepare", m: "준비하다", ex: "Prepare for the final exam.", exk: "기말고사를 준비해라."},
+        {w: "Difficult", m: "어려운", ex: "This problem is very difficult.", exk: "이 문제는 매우 어렵다."},
+        {w: "Protect", m: "보호하다", ex: "We must protect the earth.", exk: "우리는 지구를 보호해야 한다."},
+        {w: "Subject", m: "과목", ex: "What is your favorite subject?", exk: "네가 가장 좋아하는 과목은 뭐니?"},
+        {w: "Library", m: "도서관", ex: "I study in the library.", exk: "나는 도서관에서 공부한다."},
+        {w: "Brave", m: "용감한", ex: "Be brave and try it.", exk: "용기를 내서 시도해봐."},
+        {w: "Expensive", m: "비싼", ex: "This watch is too expensive.", exk: "이 시계는 너무 비싸다."},
+        {w: "Suddenly", m: "갑자기", ex: "Suddenly, it started to rain.", exk: "갑자기 비가 내리기 시작했다."},
+        {w: "History", m: "역사", ex: "I like learning about history.", exk: "나는 역사에 대해 배우는 것을 좋아한다."},
+        {w: "Healthy", m: "건강한", ex: "Eat healthy food every day.", exk: "매일 건강한 음식을 먹어라."},
+        {w: "Different", m: "다른", ex: "We are all different.", exk: "우리는 모두 다르다."},
+        {w: "Important", m: "중요한", ex: "Health is very important.", exk: "건강은 매우 중요하다."},
+        {w: "Careful", m: "조심스러운", ex: "Be careful with the knife.", exk: "칼을 조심해라."},
+        {w: "Beautiful", m: "아름다운", ex: "The flowers are beautiful.", exk: "꽃들이 아름답다."},
+        {w: "Together", m: "함께", ex: "Let's work together.", exk: "함께 일하자."},
+        {w: "Correct", m: "맞는", ex: "That is the correct answer.", exk: "그것이 정답이다."},
+        {w: "Analyze", m: "분석하다", ex: "We need to analyze the data.", exk: "우리는 데이터를 분석해야 한다."}
     ];
 
-    let megaDatabase = [...choiceWords];
-    
-    // 이전에 주석 처리했던 9,000개 데이터 부분은 삭제하지 않고 두셨으므로
-    // choiceWords 데이터만 megaDatabase에 넣어서 진짜 단어만 나오게 했습니다.
-
-    document.getElementById('db-count').innerText = megaDatabase.length;
-
-    let mode = '';
     let sessionWords = [];
-    let curIdx = 0;
+    let current = 0;
     let score = 0;
+    let quizMode = '';
 
-    document.getElementById('user-input').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') checkTyping();
-    });
-
-    function startQuest(m) {
-        mode = m;
-        // 20문제로 설정!
-        sessionWords = [...megaDatabase].sort(() => Math.random() - 0.5).slice(0, 20);
-        curIdx = 0; score = 0;
+    function startQuiz(mode) {
+        quizMode = mode;
+        current = 0; score = 0;
+        // 40개 중에서 랜덤으로 20개 뽑기
+        sessionWords = [...allDatabase].sort(() => Math.random() - 0.5).slice(0, 20);
         
+        document.getElementById('main-screen').classList.remove('active');
+        document.getElementById('quiz-screen').classList.add('active');
+        
+        document.getElementById('choices').style.display = (mode === 'choice') ? 'grid' : 'none';
         document.getElementById('typing-ui').style.display = (mode === 'typing') ? 'block' : 'none';
-        document.getElementById('choice-ui').style.display = (mode === 'choice') ? 'grid' : 'none';
+        document.getElementById('study-ui').style.display = (mode === 'study') ? 'block' : 'none';
         
-        switchScreen('quiz');
-        renderQuestion();
+        showQuestion();
     }
 
-    function renderQuestion() {
-        const q = sessionWords[curIdx];
-        document.getElementById('q-num').innerText = `STEP ${String(curIdx + 1).padStart(2, '0')}/20`;
-        document.getElementById('score-text').innerText = `SCORE: ${score * 5}`;
+    function showQuestion() {
+        const q = sessionWords[current];
+        const wordDisplay = document.getElementById('question-word');
+        const peek = document.getElementById('word-answer-peek');
+        
+        peek.style.display = 'none';
+        
+        if (quizMode === 'typing') {
+            wordDisplay.innerText = q.m; // 주관식은 뜻을 보여줌
+        } else if (quizMode === 'choice') {
+            wordDisplay.innerText = q.w; // 객관식은 영어를 보여줌
+        } else {
+            wordDisplay.innerText = q.w; // 예문학습은 영어를 보여줌
+        }
+        
+        document.getElementById('ex-en').innerText = q.ex;
+        document.getElementById('ex-ko').innerText = q.exk;
+        document.getElementById('example-box').style.display = 'none';
+        document.getElementById('next-btn').style.display = 'none';
+        document.getElementById('progress-info').innerText = `문제 ${String(current + 1).padStart(2, '0')} / 20`;
+        document.getElementById('progress-bar').style.width = `${((current + 1) / 20) * 100}%`;
 
-        if (mode === 'typing') {
-            document.getElementById('display-q').innerText = q.m;
+        if (quizMode === 'choice') {
+            const choicesDiv = document.getElementById('choices');
+            choicesDiv.innerHTML = '';
+            let options = [q.m];
+            while(options.length < 4) {
+                let randomM = allDatabase[Math.floor(Math.random()*allDatabase.length)].m;
+                if(!options.includes(randomM)) options.push(randomM);
+            }
+            options.sort(() => Math.random() - 0.5);
+            options.forEach(opt => {
+                const div = document.createElement('div');
+                div.className = 'choice-item';
+                div.innerText = opt;
+                div.onclick = () => checkChoiceAnswer(div, opt, q.m);
+                choicesDiv.appendChild(div);
+            });
+        } else if (quizMode === 'typing') {
             const input = document.getElementById('user-input');
             input.value = '';
+            input.readOnly = false;
             input.focus();
-            document.getElementById('feedback').classList.remove('show');
-        } else {
-            document.getElementById('display-q').innerText = q.w;
-            const area = document.getElementById('choice-ui');
-            area.innerHTML = '';
-            
-            // [수정 완료] 이제 megaDatabase가 아닌 choiceWords에서만 오답을 가져옵니다!
-            let choices = [q.m];
-            while(choices.length < 4) {
-                let rand = choiceWords[Math.floor(Math.random() * choiceWords.length)].m;
-                if(!choices.includes(rand)) choices.push(rand);
-            }
-            choices.sort(() => Math.random() - 0.5);
-
-            choices.forEach(c => {
-                const btn = document.createElement('div');
-                btn.className = 'choice-btn';
-                btn.innerText = c;
-                btn.onclick = () => checkChoice(btn, c, q.m);
-                area.appendChild(btn);
-            });
         }
     }
 
-    function checkTyping() {
+    function checkChoiceAnswer(el, selected, correct) {
+        const allChoices = document.querySelectorAll('.choice-item');
+        allChoices.forEach(c => c.onclick = null);
+        if (selected === correct) {
+            el.classList.add('correct');
+            score++;
+        } else {
+            el.classList.add('wrong');
+            allChoices.forEach(c => { if(c.innerText === correct) c.classList.add('correct'); });
+        }
+        showResult();
+    }
+
+    function checkTypingAnswer() {
         const input = document.getElementById('user-input');
-        const feedback = document.getElementById('feedback');
-        const userVal = input.value.trim().toLowerCase();
-        const correctVal = sessionWords[curIdx].w.toLowerCase();
-
-        if (!userVal) return;
-
-        feedback.classList.add('show');
-        if (userVal === correctVal) {
-            feedback.innerText = "정답! ✨";
-            feedback.className = "feedback show correct-text";
+        const userAnswer = input.value.trim().toLowerCase();
+        const correctAnswer = sessionWords[current].w.toLowerCase();
+        if(!userAnswer) return;
+        input.readOnly = true;
+        if (userAnswer === correctAnswer) {
             score++;
-            setTimeout(next, 800);
         } else {
-            feedback.innerText = `틀렸어요! 정답: ${sessionWords[curIdx].w}`;
-            feedback.className = "feedback show wrong-text";
-            setTimeout(next, 2000);
+            document.getElementById('word-answer-peek').innerText = `정답: ${sessionWords[current].w}`;
+            document.getElementById('word-answer-peek').style.display = 'block';
         }
+        showResult();
     }
 
-    function checkChoice(btn, sel, cor) {
-        const all = document.querySelectorAll('.choice-btn');
-        all.forEach(b => b.style.pointerEvents = 'none');
+    function showStudyResult() {
+        document.getElementById('word-answer-peek').innerText = `뜻: ${sessionWords[current].m}`;
+        document.getElementById('word-answer-peek').style.display = 'block';
+        document.getElementById('study-ui').style.display = 'none';
+        showResult();
+    }
 
-        if(sel === cor) {
-            btn.classList.add('correct');
-            score++;
-            setTimeout(next, 400);
-        } else {
-            btn.classList.add('wrong');
-            all.forEach(b => { if(b.innerText === cor) b.classList.add('correct'); });
-            setTimeout(next, 1200);
-        }
+    function showResult() {
+        document.getElementById('example-box').style.display = 'block';
+        document.getElementById('next-btn').style.display = 'block';
     }
 
     function next() {
-        curIdx++;
-        if (curIdx < 20) renderQuestion();
-        else {
+        current++;
+        if (current < 20) {
+            if(quizMode === 'study') document.getElementById('study-ui').style.display = 'block';
+            showQuestion();
+        } else {
             alert(`퀘스트 완료! 점수: ${score * 5}점`);
-            switchScreen('home');
+            location.reload();
         }
     }
 
-    function switchScreen(id) {
-        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-    }
+    document.getElementById('user-input').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter' && quizMode === 'typing') {
+            if(document.getElementById('next-btn').style.display === 'none') checkTypingAnswer();
+            else next();
+        }
+    });
 </script>
 
 </body>
