@@ -7,59 +7,113 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
         :root { --sat: env(safe-area-inset-top); --sab: env(safe-area-inset-bottom); }
-        * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
-        body { margin: 0; font-family: 'Noto Sans KR', sans-serif; background-color: #f8fbff; color: #333; overflow-y: auto; min-height: 100vh; padding-top: var(--sat); }
-        .container { max-width: 500px; margin: 0 auto; position: relative; }
+        * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; touch-action: manipulation; }
+        
+        body { 
+            margin: 0; font-family: 'Noto Sans KR', sans-serif; 
+            background-color: #f8fbff; color: #333; 
+            min-height: 100vh; padding-top: var(--sat);
+        }
+        
+        .container { max-width: 500px; margin: 0 auto; }
         .screen { display: none; padding: 25px; flex-direction: column; }
         .active { display: flex; }
-        .main-header { text-align: center; padding: 70px 20px 40px; background: #ffffff; border-radius: 0 0 50px 50px; box-shadow: 0 15px 30px rgba(72, 52, 212, 0.05); margin-bottom: 30px; }
+
+        /* 하얀색 메인 헤더 */
+        .main-header { 
+            text-align: center; padding: 70px 20px 40px; 
+            background: #ffffff; border-radius: 0 0 50px 50px; 
+            box-shadow: 0 15px 30px rgba(72, 52, 212, 0.05); margin-bottom: 30px;
+        }
         .main-header h1 { font-size: 26px; font-weight: 900; color: #4834d4; margin: 0; }
+
+        /* 메뉴 리스트 - 클릭 잘 되게 패딩 조정 */
         .menu-list { display: grid; gap: 15px; }
-        .menu-item { background: #ffffff; padding: 22px; border-radius: 25px; display: flex; align-items: center; cursor: pointer; box-shadow: 0 10px 20px rgba(72, 52, 212, 0.03); border: 1px solid rgba(72, 52, 212, 0.05); }
-        .menu-item b { font-size: 18px; margin-left: 15px; }
+        .menu-item { 
+            background: #ffffff; padding: 25px; border-radius: 25px; 
+            display: flex; align-items: center; cursor: pointer;
+            box-shadow: 0 10px 20px rgba(72, 52, 212, 0.03); border: 1px solid rgba(72, 52, 212, 0.05);
+            -webkit-user-select: none; user-select: none;
+        }
+        .menu-item b { font-size: 18px; margin-left: 15px; pointer-events: none; }
+
+        /* 퀴즈 상단바 */
         .quiz-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-weight: 900; color: #4834d4; }
-        .btn-home { background: none; border: none; font-size: 22px; cursor: pointer; }
+        .btn-home { background: none; border: none; font-size: 25px; cursor: pointer; padding: 10px; }
+
         .progress-bg { background: #eee; border-radius: 10px; height: 8px; margin-bottom: 25px; overflow: hidden; }
         .progress-bar { background: #4834d4; height: 100%; width: 0%; transition: 0.3s; }
-        .quiz-card { background: #ffffff; padding: 45px 20px; border-radius: 35px; text-align: center; box-shadow: 0 15px 35px rgba(72, 52, 212, 0.08); margin-bottom: 25px; }
-        .word-text { font-size: 42px; font-weight: 900; color: #2f3542; margin-bottom: 10px; }
-        .word-answer-peek { display: none; color: #ff7675; font-weight: 900; font-size: 20px; margin-top: 10px; }
+        
+        .quiz-card { 
+            background: #ffffff; padding: 45px 20px; border-radius: 35px; 
+            text-align: center; box-shadow: 0 15px 35px rgba(72, 52, 212, 0.08); margin-bottom: 25px;
+        }
+        .word-text { font-size: 42px; font-weight: 900; color: #2f3542; margin-bottom: 15px; }
+        .word-answer-peek { display: none; color: #ff7675; font-weight: 900; font-size: 20px; margin: 10px 0; }
+
+        /* 예문 박스 */
         .example-box { display: none; background: #f1f2ff; padding: 20px; border-radius: 20px; text-align: left; margin-top: 20px; border-left: 5px solid #4834d4; }
+
+        /* 선택지 */
         .choice-list { display: grid; gap: 12px; }
-        .choice-item { background: #f8fbff; padding: 20px; border-radius: 20px; text-align: center; border: 1px solid #f1f2ff; font-weight: 500; cursor: pointer; }
+        .choice-item { 
+            background: #f8fbff; padding: 20px; border-radius: 20px; text-align: center; 
+            border: 1px solid #f1f2ff; font-weight: 500; cursor: pointer;
+            -webkit-user-select: none; user-select: none;
+        }
         .correct { background: #ebfffa !important; color: #00b894 !important; border-color: #00b894 !important; font-weight: 900; }
         .wrong { background: #fff5f5 !important; color: #ff7675 !important; border-color: #ff7675 !important; }
+
         .btn-next { display: none; background: #4834d4; color: white; border: none; border-radius: 20px; padding: 20px; font-size: 18px; font-weight: 900; width: 100%; margin-top: 20px; cursor: pointer; }
+        
+        input[type="text"] { -webkit-appearance: none; -moz-appearance: none; appearance: none; }
     </style>
 </head>
 <body>
+
 <div class="container">
     <div id="main-screen" class="screen active">
-        <div class="main-header"><h1>하엘의 공부노트</h1><p>딱 20단어만 집중해서 해보자!</p></div>
+        <div class="main-header">
+            <h1>하엘의 공부노트</h1>
+            <p>화면을 터치해서 시작해!</p>
+        </div>
         <div class="menu-list">
-            <div class="menu-item" onclick="unlockAudio(); startQuiz('choice')">🎯 <b>객관식 퀴즈</b></div>
-            <div class="menu-item" onclick="unlockAudio(); startQuiz('typing')">⌨️ <b>주관식 타이핑</b></div>
-            <div class="menu-item" onclick="unlockAudio(); startQuiz('study')">📖 <b>단어 학습하기</b></div>
+            <div class="menu-item" onclick="startQuiz('choice')">🎯 <b>객관식 퀴즈</b></div>
+            <div class="menu-item" onclick="startQuiz('typing')">⌨️ <b>주관식 타이핑</b></div>
+            <div class="menu-item" onclick="startQuiz('study')">📖 <b>단어 학습하기</b></div>
         </div>
     </div>
+
     <div id="quiz-screen" class="screen">
-        <div class="quiz-top"><button class="btn-home" onclick="goHome()">🏠</button><span id="score-text">SCORE: 0</span></div>
+        <div class="quiz-top">
+            <button class="btn-home" onclick="goHome()">🏠</button>
+            <span id="score-text">SCORE: 0</span>
+        </div>
         <div class="progress-bg"><div id="progress-bar" class="progress-bar"></div></div>
+
         <div class="quiz-card">
             <div id="word-display" class="word-text">Word</div>
-            <div id="word-answer-peek" class="word-answer-peek">정답 표시</div>
+            <div id="word-answer-peek" class="word-answer-peek"></div>
+            
             <div id="example-box" class="example-box">
-                <div style="font-weight:900; color:#4834d4; margin-bottom:5px;">Example</div>
-                <div id="ex-en" style="font-style:italic; color:#2f3542;">Sentence</div>
-                <div id="ex-ko" style="color:#636e72; font-size:14px; margin-top:5px;">해석</div>
+                <div style="font-weight:900; color:#4834d4; margin-bottom:5px;">💡 예문</div>
+                <div id="ex-en" style="font-style:italic; color:#2f3542; margin-bottom:5px;">Sentence</div>
+                <div id="ex-ko" style="color:#636e72; font-size:14px;">해석</div>
             </div>
         </div>
-        <div id="typing-ui" style="display:none;"><input type="text" id="user-input" style="width:100%; padding:20px; border-radius:20px; border:2px solid #f1f2ff; text-align:center; font-size:18px;" placeholder="영단어 입력 후 엔터"></div>
+
+        <div id="typing-ui" style="display:none;">
+            <input type="text" id="user-input" style="width:100%; padding:20px; border-radius:20px; border:2px solid #f1f2ff; text-align:center; font-size:18px;" placeholder="답을 적고 엔터!">
+        </div>
         <div id="choice-ui" class="choice-list"></div>
-        <div id="study-ui" style="display:none;"><button class="btn-next" style="display:block; background:#686de0;" onclick="showStudyResult()">뜻 확인하기</button></div>
+        <div id="study-ui" style="display:none;">
+            <button class="btn-next" style="display:block; background:#686de0;" onclick="showStudyResult()">뜻 확인하기</button>
+        </div>
+
         <button id="next-btn" class="btn-next" onclick="next()">다음으로 👉</button>
     </div>
 </div>
+
 <script>
     const allDatabase = [
         {w:"Reliable", m:"믿을 수 있는", ex:"He is a reliable friend.", exk:"그는 믿을 수 있는 친구다."},
@@ -87,11 +141,21 @@
     let sessionWords = []; let current = 0; let score = 0; let quizMode = '';
 
     function goHome() { if(confirm("메인으로 나갈까요?")) location.reload(); }
-    function unlockAudio() { const msg = new SpeechSynthesisUtterance(''); window.speechSynthesis.speak(msg); }
-    function playTTS(text) { window.speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text); u.lang = 'en-US'; window.speechSynthesis.speak(u); }
-    function speakCurrentWord() { playTTS(sessionWords[current].w); }
+    
+    function unlockAudio() {
+        const msg = new SpeechSynthesisUtterance('');
+        window.speechSynthesis.speak(msg);
+    }
+
+    function speakCurrentWord() {
+        window.speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(sessionWords[current].w);
+        u.lang = 'en-US';
+        window.speechSynthesis.speak(u);
+    }
 
     function startQuiz(mode) {
+        unlockAudio(); // 클릭 시 오디오 잠금 해제
         quizMode = mode; current = 0; score = 0;
         sessionWords = [...allDatabase].sort(() => Math.random() - 0.5);
         document.getElementById('main-screen').classList.remove('active');
@@ -106,9 +170,14 @@
         document.getElementById('next-btn').style.display = 'none';
         document.getElementById('score-text').innerText = `SCORE: ${score * 5}`;
         document.getElementById('progress-bar').style.width = `${((current + 1) / 20) * 100}%`;
-        document.getElementById('choice-ui').innerHTML = '';
-        document.getElementById('typing-ui').style.display = 'none';
-        document.getElementById('study-ui').style.display = 'none';
+        
+        const choiceUi = document.getElementById('choice-ui');
+        const typingUi = document.getElementById('typing-ui');
+        const studyUi = document.getElementById('study-ui');
+        
+        choiceUi.innerHTML = '';
+        typingUi.style.display = 'none';
+        studyUi.style.display = 'none';
 
         if (quizMode === 'choice') {
             document.getElementById('word-display').innerText = q.w;
@@ -119,40 +188,55 @@
             }
             opts.sort(() => Math.random() - 0.5).forEach(opt => {
                 const div = document.createElement('div');
-                div.className = 'choice-item'; div.innerText = opt;
-                div.onclick = () => {
-                    const all = document.querySelectorAll('.choice-item');
-                    all.forEach(c => c.onclick = null);
-                    if(opt === q.m) { div.classList.add('correct'); score++; speakCurrentWord(); }
-                    else { div.classList.add('wrong'); all.forEach(c => { if(c.innerText === q.m) c.classList.add('correct'); }); }
-                    showResult();
-                };
-                document.getElementById('choice-ui').appendChild(div);
+                div.className = 'choice-item';
+                div.innerText = opt;
+                div.onclick = () => checkChoice(div, opt, q.m);
+                choiceUi.appendChild(div);
             });
         } else if (quizMode === 'typing') {
             document.getElementById('word-display').innerText = q.m;
-            document.getElementById('typing-ui').style.display = 'block';
+            typingUi.style.display = 'block';
             const input = document.getElementById('user-input');
             input.value = ''; input.readOnly = false;
             input.onkeypress = (e) => {
                 if(e.key === 'Enter') {
                     input.readOnly = true;
-                    if(input.value.trim().toLowerCase() === q.w.toLowerCase()) { score++; speakCurrentWord(); }
-                    else { document.getElementById('word-answer-peek').innerText = `정답: ${q.w}`; document.getElementById('word-answer-peek').style.display = 'block'; }
+                    if(input.value.trim().toLowerCase() === q.w.toLowerCase()) {
+                        score++;
+                        speakCurrentWord();
+                    } else {
+                        document.getElementById('word-answer-peek').innerText = `정답: ${q.w}`;
+                        document.getElementById('word-answer-peek').style.display = 'block';
+                    }
                     showResult();
                 }
             };
         } else if (quizMode === 'study') {
             document.getElementById('word-display').innerText = q.w;
-            document.getElementById('study-ui').style.display = 'block';
+            studyUi.style.display = 'block';
             speakCurrentWord();
         }
+    }
+
+    function checkChoice(div, picked, correct) {
+        const all = document.querySelectorAll('.choice-item');
+        all.forEach(c => c.onclick = null); // 중복 클릭 방지
+        if(picked === correct) {
+            div.classList.add('correct');
+            score++;
+            speakCurrentWord();
+        } else {
+            div.classList.add('wrong');
+            all.forEach(c => { if(c.innerText === correct) c.classList.add('correct'); });
+        }
+        showResult();
     }
 
     function showStudyResult() {
         document.getElementById('word-answer-peek').innerText = `뜻: ${sessionWords[current].m}`;
         document.getElementById('word-answer-peek').style.display = 'block';
         document.getElementById('study-ui').style.display = 'none';
+        speakCurrentWord();
         showResult();
     }
 
@@ -162,13 +246,13 @@
         document.getElementById('ex-ko').innerText = q.exk;
         document.getElementById('example-box').style.display = 'block';
         document.getElementById('next-btn').style.display = 'block';
-        setTimeout(() => { window.scrollBy({ top: 200, behavior: 'smooth' }); }, 100);
+        window.scrollBy({ top: 150, behavior: 'smooth' });
     }
 
     function next() {
         current++;
         if (current < 20) showQuestion();
-        else { alert("🎉 20개 완료!"); location.reload(); }
+        else { alert("🎉 완료!"); location.reload(); }
     }
 </script>
 </body>
